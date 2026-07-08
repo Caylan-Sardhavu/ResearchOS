@@ -1,27 +1,33 @@
 from app.agents.base import AgentProfile
 from app.knowledge.notebook import ResearchNotebook
-from app.models.research import ResearchPlan
+from app.models.research import ResearchResponse
+from app.services.planner import PlannerService
 
 
 class ResearchDirector:
     def __init__(self):
         self.notebook = ResearchNotebook()
+        self.planner = PlannerService()
 
-    def create_plan(self, question: str) -> ResearchPlan:
+    def create_plan(self, question: str) -> ResearchResponse:
         matches = self.notebook.search(question)
+        research_plan = self.planner.create_plan(question)
         selected_agents = self._select_agents(question)
         complexity = self._estimate_complexity(question)
 
-        return ResearchPlan(
+        return ResearchResponse(
             question=question,
             complexity=complexity,
             notebook_matches=matches,
+            research_plan=research_plan,
             selected_agents=selected_agents,
             director_notes=[
                 "Checked the Research Notebook for similar previous work.",
-                "Selected specialist agents based on the question type.",
+                "Created a structured research plan.",
+                "Selected specialist agents using fallback rule-based planning.",
                 "Prepared an initial research team for this investigation.",
             ],
+            ai_used=False,
         )
 
     def _select_agents(self, question: str) -> list[AgentProfile]:
@@ -94,12 +100,13 @@ class ResearchDirector:
         return agents
 
     def _estimate_complexity(self, question: str) -> str:
+        q = question.lower()
         word_count = len(question.split())
 
         if word_count > 18:
             return "high"
 
-        if any(word in question.lower() for word in ["compare", "gap", "benchmark", "systematic", "literature review"]):
+        if any(word in q for word in ["compare", "gap", "benchmark", "systematic", "literature review"]):
             return "medium"
 
         return "low"

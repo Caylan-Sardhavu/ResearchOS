@@ -1,0 +1,89 @@
+[
+  {
+    "id": "b9ce968e-dd5e-4294-9e16-5b1951fcee71",
+    "question": "Find recent research gaps in transformer inference optimization for AMD GPUs using ROCm.",
+    "summary": "# Research Report\n\n## Research Question\n\nFind recent research gaps in transformer inference optimization for AMD GPUs using ROCm.\n\n## Investigation Plan\n\n- What transformer optimization methods exist?\n- Which AMD GPUs are evaluated?\n- Which benchmarks are commonly used?\n- What limitations are repeat",
+    "research_gaps": [
+      "The paper suggests possible future work or open research questions.",
+      "Repeated limitation: No explicit limitations were detected from the abstract.",
+      "No explicit research gaps were detected from the abstract.",
+      "Repeated limitation: The paper mentions limitations, challenges, or bottlenecks."
+    ],
+    "selected_agents": [
+      "Research Planner",
+      "Evidence Synthesizer",
+      "Literature Specialist",
+      "Benchmark Analyst",
+      "Research Gap Detector",
+      "Research Writer"
+    ],
+    "paper_titles": [
+      "Metrics and Design of an Instruction Roofline Model for AMD GPUs",
+      "Optimizing sDTW for AMD GPUs",
+      "Optimization and Portability of a Fusion OpenACC-based FORTRAN HPC Code from NVIDIA to AMD GPUs",
+      "AMD MI300X GPU Performance Analysis",
+      "Performance Comparison on Parallel CPU and GPU Algorithms for Unified Gas-Kinetic Scheme",
+      "On the solution existence and stability of polynomial optimization problems",
+      "Optimal design of frame structures with mixed categorical and continuous design variables using the Gumbel-Softmax method",
+      "Two-Scale Optimization of Graded Lattice Structures respecting Buckling on Micro- and Macroscale",
+      "Adversarial Transformer Language Models for Contextual Commonsense Inference",
+      "PyramidTNT: Improved Transformer-in-Transformer Baselines with Pyramid Architecture",
+      "Double Robust Semi-Supervised Inference for the Mean: Selection Bias under MAR Labeling with Decaying Overlap",
+      "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition"
+    ],
+    "report": "# Research Report\n\n## Research Question\n\nFind recent research gaps in transformer inference optimization for AMD GPUs using ROCm.\n\n## Investigation Plan\n\n- What transformer optimization methods exist?\n- Which AMD GPUs are evaluated?\n- Which benchmarks are commonly used?\n- What limitations are repeatedly mentioned?\n- What research gaps remain?\n\n## Literature Review\n\n### Common Findings\n- The paper discusses performance or benchmarking results.\n- The paper is relevant to GPU-based computing.\n- The paper contains AMD or ROCm-related content.\n- The paper may be relevant, but no strong rule-based findings were detected.\n\n### Common Limitations\n- No explicit limitations were detected from the abstract.\n- The paper mentions limitations, challenges, or bottlenecks.\n\n### Emerging Topics\n- GPU computing\n- AMD / ROCm ecosystem\n- Performance benchmarking\n\n## Top Papers\n- **Optimization and Portability of a Fusion OpenACC-based FORTRAN HPC Code from NVIDIA to AMD GPUs** (2023) — http://arxiv.org/abs/2305.10553v1\n- **Optimizing sDTW for AMD GPUs** (2024) — http://arxiv.org/abs/2403.06931v1\n- **Metrics and Design of an Instruction Roofline Model for AMD GPUs** (2021) — http://arxiv.org/abs/2110.08221v2\n- **Adversarial Transformer Language Models for Contextual Commonsense Inference** (2023) — http://arxiv.org/abs/2302.05406v1\n- **PyramidTNT: Improved Transformer-in-Transformer Baselines with Pyramid Architecture** (2022) — http://arxiv.org/abs/2201.00978v1\n\n## Research Gaps\n- The paper suggests possible future work or open research questions.\n- Repeated limitation: No explicit limitations were detected from the abstract.\n- No explicit research gaps were detected from the abstract.\n- Repeated limitation: The paper mentions limitations, challenges, or bottlenecks.",
+    "created_at": "2026-07-10T21:58:26.196363+00:00"
+  },
+  {
+    "id": "1a803cca-6ef7-43f8-af0a-47b3aaf1ae60",
+    "question": "What are the latest techniques for optimizing LLM inference on AMD Instinct GPUs?",
+    "summary": "# Research Report\n\n## Research Question\n\nWhat are the latest techniques for optimizing LLM inference on AMD Instinct GPUs?\n\n## Investigation Plan\n\n\n## Literature Review\n\n### Common Findings\n- The paper discusses performance or benchmarking results.\n- The paper is relevant to GPU-based computing.\n- T",
+    "research_gaps": [
+      "No explicit research gaps were detected from the abstract.",
+      "Repeated limitation: The paper mentions limitations, challenges, or bottlenecks.",
+      "The paper suggests possible future work or open research questions.",
+      "Repeated limitation: No explicit limitations were detected from the abstract."
+    ],
+    "selected_agents": [
+      "Research Planner",
+      "Evidence Synthesizer",
+      "Benchmark Analyst",
+      "Research Writer"
+    ],
+    "paper_titles": [
+      "Architecture-Aware LLM Inference Optimization on AMD Instinct GPUs: A Comprehensive Benchmark and Deployment Study",
+      "Metrics and Design of an Instruction Roofline Model for AMD GPUs",
+      "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+      "AMD MI300X GPU Performance Analysis",
+      "Performance Comparison on Parallel CPU and GPU Algorithms for Unified Gas-Kinetic Scheme"
+    ],
+    "report": "# Research Report\n\n## Research Question\n\nWhat are the latest techniques for optimizing LLM inference on AMD Instinct GPUs?\n\n## Investigation Plan\n\n\n## Literature Review\n\n### Common Findings\n- The paper discusses performance or benchmarking results.\n- The paper is relevant to GPU-based computing.\n- The paper contains AMD or ROCm-related content.\n\n### Common Limitations\n- The paper mentions limitations, challenges, or bottlenecks.\n- No explicit limitations were detected from the abstract.\n\n### Emerging Topics\n- GPU computing\n- AMD / ROCm ecosystem\n- Performance benchmarking\n\n## Top Papers\n- **Architecture-Aware LLM Inference Optimization on AMD Instinct GPUs: A Comprehensive Benchmark and Deployment Study** (2026) — http://arxiv.org/abs/2603.10031v1\n- **Metrics and Design of an Instruction Roofline Model for AMD GPUs** (2021) — http://arxiv.org/abs/2110.08221v2\n- **AMD MI300X GPU Performance Analysis** (2025) — http://arxiv.org/abs/2510.27583v1\n- **YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition** (2026) — http://arxiv.org/abs/2606.05868v1\n- **Performance Comparison on Parallel CPU and GPU Algorithms for Unified Gas-Kinetic Scheme** (2018) — http://arxiv.org/abs/1810.08137v3\n\n## Research Gaps\n- No explicit research gaps were detected from the abstract.\n- Repeated limitation: The paper mentions limitations, challenges, or bottlenecks.\n- The paper suggests possible future work or open research questions.\n- Repeated limitation: No explicit limitations were detected from the abstract.",
+    "created_at": "2026-07-10T21:18:59.403109+00:00"
+  },
+  {
+    "id": "a2b651f6-d009-4ce0-bae8-b04e0e9df8e8",
+    "question": "What are the latest techniques for optimizing LLM inference on AMD Instinct GPUs?",
+    "summary": "# Research Report\n\n## Research Question\n\nWhat are the latest techniques for optimizing LLM inference on AMD Instinct GPUs?\n\n## Investigation Plan\n\n\n## Literature Review\n\n### Common Findings\n- The paper discusses performance or benchmarking results.\n- The paper is relevant to GPU-based computing.\n- T",
+    "research_gaps": [
+      "No explicit research gaps were detected from the abstract.",
+      "Repeated limitation: The paper mentions limitations, challenges, or bottlenecks.",
+      "The paper suggests possible future work or open research questions.",
+      "Repeated limitation: No explicit limitations were detected from the abstract."
+    ],
+    "selected_agents": [
+      "Research Planner",
+      "Evidence Synthesizer",
+      "Benchmark Analyst",
+      "Research Writer"
+    ],
+    "paper_titles": [
+      "Architecture-Aware LLM Inference Optimization on AMD Instinct GPUs: A Comprehensive Benchmark and Deployment Study",
+      "Metrics and Design of an Instruction Roofline Model for AMD GPUs",
+      "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+      "AMD MI300X GPU Performance Analysis",
+      "Performance Comparison on Parallel CPU and GPU Algorithms for Unified Gas-Kinetic Scheme"
+    ],
+    "report": "# Research Report\n\n## Research Question\n\nWhat are the latest techniques for optimizing LLM inference on AMD Instinct GPUs?\n\n## Investigation Plan\n\n\n## Literature Review\n\n### Common Findings\n- The paper discusses performance or benchmarking results.\n- The paper is relevant to GPU-based computing.\n- The paper contains AMD or ROCm-related content.\n\n### Common Limitations\n- The paper mentions limitations, challenges, or bottlenecks.\n- No explicit limitations were detected from the abstract.\n\n### Emerging Topics\n- GPU computing\n- AMD / ROCm ecosystem\n- Performance benchmarking\n\n## Top Papers\n- **Architecture-Aware LLM Inference Optimization on AMD Instinct GPUs: A Comprehensive Benchmark and Deployment Study** (2026) — http://arxiv.org/abs/2603.10031v1\n- **Metrics and Design of an Instruction Roofline Model for AMD GPUs** (2021) — http://arxiv.org/abs/2110.08221v2\n- **AMD MI300X GPU Performance Analysis** (2025) — http://arxiv.org/abs/2510.27583v1\n- **YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition** (2026) — http://arxiv.org/abs/2606.05868v1\n- **Performance Comparison on Parallel CPU and GPU Algorithms for Unified Gas-Kinetic Scheme** (2018) — http://arxiv.org/abs/1810.08137v3\n\n## Research Gaps\n- No explicit research gaps were detected from the abstract.\n- Repeated limitation: The paper mentions limitations, challenges, or bottlenecks.\n- The paper suggests possible future work or open research questions.\n- Repeated limitation: No explicit limitations were detected from the abstract.",
+    "created_at": "2026-07-10T10:02:57.568452+00:00"
+  }
+]

@@ -17,25 +17,23 @@ class GapDetectorService:
         analyses: list[PaperAnalysis],
     ) -> list[str]:
         """
-        Combines research gaps and limitations across papers.
+        Combines research gaps and limitations across papers,
+        then removes duplicates while preserving order.
         """
 
         gaps = []
 
         for analysis in analyses:
             for gap in analysis.research_gaps:
-                if gap not in gaps:
-                    gaps.append(gap)
+                gaps.append(gap)
 
             for limitation in analysis.limitations:
-                if limitation not in gaps:
-                    gaps.append(
-                        f"Repeated limitation: {limitation}"
-                    )
+                gaps.append(f"Repeated limitation: {limitation}")
 
         if not gaps:
             gaps.append(
                 "No strong research gaps were detected from the available abstracts."
             )
 
-        return gaps
+        # Remove duplicate gaps while keeping the original order.
+        return list(dict.fromkeys(gaps))

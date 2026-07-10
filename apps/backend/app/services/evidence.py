@@ -1,54 +1,48 @@
-from app.services.arxiv import ArxivService
 from app.models.paper import Paper
+from app.services.arxiv import ArxivService
 
 
 class EvidenceService:
     """
-    Coordinates research evidence retrieval.
-
-    This service sits between the Planner and individual data sources.
-    For now, it only uses arXiv. Later, we can add Semantic Scholar,
-    OpenAlex, AMD docs, GitHub, PubMed, and more without changing the Director.
+    Coordinates research evidence retrieval from external sources.
     """
 
     def __init__(self):
         self.arxiv = ArxivService()
 
     async def collect_evidence(
-            self,
-            search_queries: list[str],
-            max_results_per_query: int = 3,
+        self,
+        search_queries: list[str],
+        max_results_per_query: int = 3,
     ) -> list[Paper]:
         """
-        Runs multiple search queries against research sources
-        and returns a deduplicated list of papers.
+        Runs multiple search queries and safely skips failed searches.
         """
 
         all_papers = []
 
         for query in search_queries:
-            papers = await self.arxiv.search(
-                query=query,
-                max_results=max_results_per_query,
-            )
+            try:
+                papers = await self.arxiv.search(
+                    query=query,
+                    max_results=max_results_per_query,
+                )
+                all_papers.extend(papers)
 
-            all_papers.extend(papers)
+            except Exception as error:
+                print(f"Evidence retrieval failed for query '{query}': {error}")
 
         return self._deduplicate_papers(all_papers)
 
-    def _deduplicate_papers(self, papers: list[Paper],) -> list[Paper]:
+    def _deduplicate_papers(self, papers: list[Paper]) -> list[Paper]:
         """
-        Removes duplicate papers based on their URL.
-
-        Since multiple search queries can return the same paper,
-        we keep only the first occurrence.
+        Removes duplicate papers based on URL.
         """
 
         seen_urls = set()
         unique_papers = []
 
         for paper in papers:
-
             if paper.url in seen_urls:
                 continue
 
@@ -56,4 +50,3 @@ class EvidenceService:
             unique_papers.append(paper)
 
         return unique_papers
-    

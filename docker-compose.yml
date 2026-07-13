@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    environment:
+      USE_FIREWORKS: ${USE_FIREWORKS:-true}
+      FIREWORKS_API_KEY: ${FIREWORKS_API_KEY}
+      FIREWORKS_MODEL: ${FIREWORKS_MODEL}
+      FIREWORKS_BASE_URL: ${FIREWORKS_BASE_URL:-https://api.fireworks.ai/inference/v1}
+      FIREWORKS_MAX_TOKENS: ${FIREWORKS_MAX_TOKENS:-3200}
+      FIREWORKS_TEMPERATURE: ${FIREWORKS_TEMPERATURE:-0.2}
+      FIREWORKS_TIMEOUT_SECONDS: ${FIREWORKS_TIMEOUT_SECONDS:-120}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -7,6 +7,10 @@ import InvestigationTimeline from "../components/InvestigationTimeline";
 import ResultsTabs from "../components/ResultsTabs";
 import SearchPanel from "../components/SearchPanel";
 import Sidebar from "../components/Sidebar";
+import ResearchReport from "../components/ResearchReport";
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type Agent = {
   name: string;
@@ -52,9 +56,130 @@ type NotebookEntry = {
   created_at: string;
 };
 
+type GapInsight = {
+  title: string;
+  description: string;
+};
+
 /**
- * Decorative purple galaxy displayed in the upper-right corner.
- * This uses CSS rather than an image, so it stays sharp and lightweight.
+ * Extracts numbered gaps from the AI-generated Markdown report.
+ *
+ * Expected structure:
+ *
+ * ## Identified Research Gaps
+ *
+ * 1. **Gap title**: Explanation
+ * 2. **Gap title**: Explanation
+ *
+ * ## Future Research Directions
+ */
+function extractAiResearchGaps(report: string): string[] {
+  if (!report.trim()) {
+    return [];
+  }
+
+  const sectionMatch = report.match(
+    /##\s*Identified Research Gaps\s*([\s\S]*?)(?=\n##\s+|$)/i,
+  );
+
+  if (!sectionMatch) {
+    return [];
+  }
+
+  const section = sectionMatch[1].trim();
+
+  /**
+   * Capture numbered Markdown items.
+   *
+   * This works for:
+   * 1. **Title**: Description
+   * 2. **Title**: Description
+   */
+  const numberedMatches = Array.from(
+    section.matchAll(
+      /(?:^|\n)\s*\d+[.)]\s+([\s\S]*?)(?=\n\s*\d+[.)]\s+|$)/g,
+    ),
+  );
+
+  const numberedGaps = numberedMatches
+    .map((match) =>
+      match[1]
+        .replace(/\n+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter((gap) => gap.length > 20);
+
+  if (numberedGaps.length > 0) {
+    return Array.from(new Set(numberedGaps)).slice(0, 8);
+  }
+
+  /**
+   * Fall back to bullet points if the model used bullets instead
+   * of numbered items.
+   */
+  const bulletGaps = section
+    .split("\n")
+    .filter((line) => /^[-*•]\s+/.test(line.trim()))
+    .map((line) =>
+      line
+        .replace(/^[-*•]\s+/, "")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter((gap) => gap.length > 20);
+
+  return Array.from(new Set(bulletGaps)).slice(0, 8);
+}
+
+/**
+ * Separates a Markdown-style gap into a title and description.
+ *
+ * Example:
+ * **Lack of standardized benchmarks**: No evidence exists...
+ */
+function parseGapInsight(gap: string): GapInsight {
+  const cleaned = gap
+    .replace(/^\d+[.)]\s*/, "")
+    .replace(/\n+/g, " ")
+    .trim();
+
+  const boldTitleMatch = cleaned.match(
+    /^\*\*(.+?)\*\*\s*:?\s*([\s\S]*)$/,
+  );
+
+  if (boldTitleMatch) {
+    return {
+      title: boldTitleMatch[1].trim(),
+      description:
+        boldTitleMatch[2].trim() ||
+        "This area remains underexplored in the available evidence.",
+    };
+  }
+
+  const colonIndex = cleaned.indexOf(":");
+
+  if (colonIndex > 0 && colonIndex < 120) {
+    return {
+      title: cleaned
+        .slice(0, colonIndex)
+        .replace(/\*\*/g, "")
+        .trim(),
+      description: cleaned
+        .slice(colonIndex + 1)
+        .replace(/\*\*/g, "")
+        .trim(),
+    };
+  }
+
+  return {
+    title: "Underexplored Research Area",
+    description: cleaned.replace(/\*\*/g, ""),
+  };
+}
+
+/**
+ * Decorative purple universe displayed in the top-right corner.
  */
 function UniverseVisual() {
   return (
@@ -89,32 +214,127 @@ function UniverseVisual() {
   );
 }
 
+type ResearchGapsPanelProps = {
+  gaps: string[];
+  aiSynthesized: boolean;
+};
+
+function ResearchGapsPanel({
+  gaps,
+  aiSynthesized,
+}: ResearchGapsPanelProps) {
+  const insights = gaps.map(parseGapInsight);
+
+  return (
+    <div className="rounded-2xl border border-purple-900/40 bg-zinc-950/80 p-6">
+      <div className="mb-7 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h3 className="text-3xl font-bold text-purple-400">
+            Research Gaps
+          </h3>
+
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            {aiSynthesized
+              ? "Cross-paper research opportunities synthesized by Fireworks AI from the final evidence-grounded report."
+              : "Potential gaps extracted from retrieved paper abstracts, limitations, and future-work statements."}
+          </p>
+        </div>
+
+        <div
+          className={`w-fit shrink-0 rounded-full border px-4 py-2 text-xs font-semibold ${
+            aiSynthesized
+              ? "border-purple-600 bg-purple-950/70 text-purple-200 shadow-[0_0_18px_rgba(147,51,234,0.2)]"
+              : "border-zinc-700 bg-zinc-900 text-slate-400"
+          }`}
+        >
+          {aiSynthesized ? "✦ AI Synthesized" : "Fallback Analysis"}
+        </div>
+      </div>
+
+      {insights.length === 0 ? (
+        <p className="text-slate-400">
+          No meaningful research gaps were detected.
+        </p>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2">
+          {insights.map((insight, index) => (
+            <article
+              key={`${index}-${insight.title}`}
+              className="group relative overflow-hidden rounded-2xl border border-purple-900/50 bg-black/60 p-6 transition duration-300 hover:-translate-y-1 hover:border-purple-500 hover:bg-purple-950/20 hover:shadow-[0_0_28px_rgba(147,51,234,0.16)]"
+            >
+              <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-purple-700/10 blur-2xl transition group-hover:bg-purple-600/20" />
+
+              <div className="relative flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-700 bg-purple-950/80 text-sm font-bold text-purple-200 shadow-[0_0_14px_rgba(147,51,234,0.25)]">
+                  {index + 1}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-fuchsia-900/70 bg-fuchsia-950/30 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-fuchsia-300">
+                      High-impact opportunity
+                    </span>
+                  </div>
+
+                  <h4 className="text-lg font-bold leading-7 text-purple-200">
+                    {insight.title}
+                  </h4>
+
+                  <p className="mt-3 text-sm leading-7 text-slate-300">
+                    {insight.description}
+                  </p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState("");
   const [activeStage, setActiveStage] = useState(0);
-  const [investigationComplete, setInvestigationComplete] = useState(false);
+  const [investigationComplete, setInvestigationComplete] =
+    useState(false);
 
   const [selectedNotebookEntry, setSelectedNotebookEntry] =
     useState<NotebookEntry | null>(null);
 
-  const [loadingNotebookEntry, setLoadingNotebookEntry] = useState(false);
+  const [loadingNotebookEntry, setLoadingNotebookEntry] =
+    useState(false);
 
-  // Incrementing this value tells Sidebar to reload notebook history.
   const [notebookRefreshKey, setNotebookRefreshKey] = useState(0);
 
-  /**
-   * Loads a previously saved investigation from the Research Notebook.
-   */
+  const currentAiResearchGaps = result
+    ? extractAiResearchGaps(result.report)
+    : [];
+
+  const currentDisplayedGaps =
+    currentAiResearchGaps.length > 0
+      ? currentAiResearchGaps
+      : result?.research_gaps ?? [];
+
+  const notebookAiResearchGaps = selectedNotebookEntry
+    ? extractAiResearchGaps(selectedNotebookEntry.report)
+    : [];
+
+  const notebookDisplayedGaps =
+    notebookAiResearchGaps.length > 0
+      ? notebookAiResearchGaps
+      : selectedNotebookEntry?.research_gaps ?? [];
+
   async function loadNotebookEntry(id: string) {
     setLoadingNotebookEntry(true);
     setError("");
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/notebook/${id}`,
+        `${API_URL}/notebook/${id}`,
       );
 
       if (!response.ok) {
@@ -136,11 +356,10 @@ export default function Home() {
     }
   }
 
-  /**
-   * Runs a new end-to-end ResearchOS investigation.
-   */
   async function startResearch() {
-    if (!question.trim()) return;
+    if (!question.trim() || loading) {
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -151,9 +370,6 @@ export default function Home() {
 
     const stageDuration = 2200;
 
-    /**
-     * Runs the visible timeline independently from the backend request.
-     */
     const runTimeline = async () => {
       for (let stage = 1; stage <= 5; stage += 1) {
         await new Promise<void>((resolve) => {
@@ -170,7 +386,7 @@ export default function Home() {
 
     try {
       const researchRequest = fetch(
-        "http://127.0.0.1:8000/research",
+        `${API_URL}/research`,
         {
           method: "POST",
           headers: {
@@ -180,7 +396,11 @@ export default function Home() {
         },
       ).then(async (response) => {
         if (!response.ok) {
-          throw new Error("Research request failed.");
+          const message = await response.text();
+
+          throw new Error(
+            message || "Research request failed.",
+          );
         }
 
         return (await response.json()) as ResearchResult;
@@ -193,8 +413,6 @@ export default function Home() {
 
       setInvestigationComplete(true);
       setResult(data);
-
-      // Reload the notebook history after the backend saves the investigation.
       setNotebookRefreshKey((current) => current + 1);
     } catch (err) {
       console.error(err);
@@ -216,7 +434,7 @@ export default function Home() {
         <section className="relative flex-1 overflow-hidden px-6 py-10 lg:px-14">
           <UniverseVisual />
 
-          <div className="absolute bottom-20 left-1/2 h-96 w-96 rounded-full bg-violet-900/20 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-20 left-1/2 h-96 w-96 rounded-full bg-violet-900/20 blur-3xl" />
 
           <div className="relative z-10 mx-auto max-w-6xl">
             <Hero />
@@ -291,7 +509,10 @@ export default function Home() {
                             Selected Agents
                           </p>
                           <p className="mt-2 text-2xl font-bold text-purple-300">
-                            {selectedNotebookEntry.selected_agents.length}
+                            {
+                              selectedNotebookEntry
+                                .selected_agents.length
+                            }
                           </p>
                         </div>
 
@@ -300,7 +521,10 @@ export default function Home() {
                             Papers Referenced
                           </p>
                           <p className="mt-2 text-2xl font-bold text-purple-300">
-                            {selectedNotebookEntry.paper_titles.length}
+                            {
+                              selectedNotebookEntry
+                                .paper_titles.length
+                            }
                           </p>
                         </div>
 
@@ -309,7 +533,7 @@ export default function Home() {
                             Research Gaps
                           </p>
                           <p className="mt-2 text-2xl font-bold text-purple-300">
-                            {selectedNotebookEntry.research_gaps.length}
+                            {notebookDisplayedGaps.length}
                           </p>
                         </div>
                       </div>
@@ -347,50 +571,42 @@ export default function Home() {
                         Papers Referenced
                       </h3>
 
-                      <div className="space-y-3">
-                        {selectedNotebookEntry.paper_titles.map(
-                          (title, index) => (
-                            <div
-                              key={`${index}-${title}`}
-                              className="rounded-xl border border-purple-900/30 bg-black/40 p-4 text-slate-300"
-                            >
-                              {index + 1}. {title}
-                            </div>
-                          ),
-                        )}
-                      </div>
+                      {selectedNotebookEntry.paper_titles.length ===
+                      0 ? (
+                        <p className="text-slate-400">
+                          No papers were saved for this
+                          investigation.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedNotebookEntry.paper_titles.map(
+                            (title, index) => (
+                              <div
+                                key={`${index}-${title}`}
+                                className="rounded-xl border border-purple-900/30 bg-black/40 p-4 text-slate-300"
+                              >
+                                {index + 1}. {title}
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      )}
                     </div>
                   }
                   gaps={
-                    <div className="rounded-2xl border border-purple-900/40 bg-zinc-950/80 p-6">
-                      <h3 className="mb-4 text-2xl font-bold text-purple-400">
-                        Research Gaps
-                      </h3>
-
-                      <ul className="space-y-3">
-                        {selectedNotebookEntry.research_gaps.map(
-                          (gap, index) => (
-                            <li
-                              key={`${index}-${gap}`}
-                              className="rounded-xl border border-purple-900/30 bg-black/40 p-4 text-slate-300"
-                            >
-                              • {gap}
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </div>
+                    <ResearchGapsPanel
+                      gaps={notebookDisplayedGaps}
+                      aiSynthesized={
+                        notebookAiResearchGaps.length > 0
+                      }
+                    />
                   }
                   report={
-                    <div className="rounded-2xl border border-purple-900/40 bg-zinc-950/80 p-6">
-                      <h3 className="mb-4 text-2xl font-bold text-purple-400">
-                        Saved Research Report
-                      </h3>
-
-                      <pre className="overflow-x-auto whitespace-pre-wrap rounded-xl bg-black/60 p-5 text-sm leading-7 text-slate-300">
-                        {selectedNotebookEntry.report}
-                      </pre>
-                    </div>
+                    <ResearchReport
+                      report={selectedNotebookEntry.report}
+                      title="Saved Research Report"
+                      badge="Notebook Archive"
+                    />
                   }
                 />
               </section>
@@ -405,6 +621,7 @@ export default function Home() {
                         <p className="text-sm text-slate-500">
                           Complexity
                         </p>
+
                         <p className="mt-2 text-2xl font-bold capitalize text-purple-300">
                           {result.director.complexity}
                         </p>
@@ -414,6 +631,7 @@ export default function Home() {
                         <p className="text-sm text-slate-500">
                           Papers Found
                         </p>
+
                         <p className="mt-2 text-2xl font-bold text-purple-300">
                           {result.papers_found}
                         </p>
@@ -421,10 +639,11 @@ export default function Home() {
 
                       <div className="rounded-2xl border border-purple-900/40 bg-zinc-950/80 p-6">
                         <p className="text-sm text-slate-500">
-                          AI Used
+                          Execution Mode
                         </p>
+
                         <p className="mt-2 text-2xl font-bold text-purple-300">
-                          {result.director.ai_used ? "Yes" : "Fallback"}
+                          {result.director.ai_used ? "AI Orchestrated" : "Hybrid Mode"}
                         </p>
                       </div>
                     </div>
@@ -435,12 +654,17 @@ export default function Home() {
                       </h3>
 
                       <div className="space-y-2 text-sm text-slate-300">
-                        {result.director.notes.map((note, index) => (
-                          <p key={`${index}-${note}`}>✓ {note}</p>
-                        ))}
+                        {result.director.notes.map(
+                          (note, index) => (
+                            <p key={`${index}-${note}`}>
+                              ✓ {note}
+                            </p>
+                          ),
+                        )}
                       </div>
 
-                      {result.director.notebook_matches.length > 0 && (
+                      {result.director.notebook_matches.length >
+                        0 && (
                         <div className="mt-6">
                           <h4 className="font-semibold text-purple-300">
                             Related Notebook Research
@@ -449,7 +673,9 @@ export default function Home() {
                           <ul className="mt-3 space-y-2 text-sm text-slate-400">
                             {result.director.notebook_matches.map(
                               (match, index) => (
-                                <li key={`${index}-${match}`}>
+                                <li
+                                  key={`${index}-${match}`}
+                                >
                                   • {match}
                                 </li>
                               ),
@@ -492,86 +718,75 @@ export default function Home() {
 
                     {result.top_papers.length === 0 ? (
                       <p className="text-slate-400">
-                        No papers were retrieved for this investigation.
+                        No papers were retrieved for this
+                        investigation.
                       </p>
                     ) : (
                       <div className="space-y-4">
-                        {result.top_papers.map((paper, index) => (
-                          <div
-                            key={`${index}-${paper.url}`}
-                            className="rounded-xl border border-purple-900/40 bg-black/50 p-5"
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div>
-                                <h4 className="font-bold text-purple-300">
-                                  {paper.title}
-                                </h4>
-
-                                <p className="mt-1 text-sm text-slate-500">
-                                  {paper.source} •{" "}
-                                  {paper.published
-                                    ? paper.published.slice(0, 4)
-                                    : "Unknown year"}
-                                </p>
-                              </div>
-
-                              <div className="shrink-0 rounded-lg bg-purple-950 px-3 py-1 text-sm text-purple-200">
-                                Score {paper.relevance_score.toFixed(1)}
-                              </div>
-                            </div>
-
-                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-400">
-                              {paper.summary}
-                            </p>
-
-                            <a
-                              href={paper.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="mt-4 inline-block text-sm font-semibold text-purple-400 hover:text-purple-300"
+                        {result.top_papers.map(
+                          (paper, index) => (
+                            <article
+                              key={`${index}-${paper.url}`}
+                              className="rounded-xl border border-purple-900/40 bg-black/50 p-5"
                             >
-                              View paper →
-                            </a>
-                          </div>
-                        ))}
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <h4 className="font-bold text-purple-300">
+                                    {paper.title}
+                                  </h4>
+
+                                  <p className="mt-1 text-sm text-slate-500">
+                                    {paper.source} •{" "}
+                                    {paper.published
+                                      ? paper.published.slice(
+                                          0,
+                                          4,
+                                        )
+                                      : "Unknown year"}
+                                  </p>
+                                </div>
+
+                                <div className="shrink-0 rounded-lg bg-purple-950 px-3 py-1 text-sm text-purple-200">
+                                  Score{" "}
+                                  {paper.relevance_score.toFixed(
+                                    1,
+                                  )}
+                                </div>
+                              </div>
+
+                              <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-400">
+                                {paper.summary}
+                              </p>
+
+                              <a
+                                href={paper.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-4 inline-block text-sm font-semibold text-purple-400 hover:text-purple-300"
+                              >
+                                View paper →
+                              </a>
+                            </article>
+                          ),
+                        )}
                       </div>
                     )}
                   </div>
                 }
                 gaps={
-                  <div className="rounded-2xl border border-purple-900/40 bg-zinc-950/80 p-6">
-                    <h3 className="mb-4 text-2xl font-bold text-purple-400">
-                      Research Gaps
-                    </h3>
-
-                    {result.research_gaps.length === 0 ? (
-                      <p className="text-slate-400">
-                        No research gaps were detected.
-                      </p>
-                    ) : (
-                      <ul className="space-y-3 text-slate-300">
-                        {result.research_gaps.map((gap, index) => (
-                          <li
-                            key={`${index}-${gap}`}
-                            className="rounded-xl border border-purple-900/30 bg-black/40 p-4"
-                          >
-                            • {gap}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                  <ResearchGapsPanel
+                    gaps={currentDisplayedGaps}
+                    aiSynthesized={
+                      currentAiResearchGaps.length > 0
+                    }
+                  />
                 }
                 report={
-                  <div className="rounded-2xl border border-purple-900/40 bg-zinc-950/80 p-6">
-                    <h3 className="mb-4 text-2xl font-bold text-purple-400">
-                      Research Report
-                    </h3>
-
-                    <pre className="overflow-x-auto whitespace-pre-wrap rounded-xl bg-black/60 p-5 text-sm leading-7 text-slate-300">
-                      {result.report}
-                    </pre>
-                  </div>
+                  <ResearchReport
+                    report={result.report}
+                    title="Evidence-Grounded Research Report"
+                    badge="Fireworks AI"
+                  />
                 }
               />
             )}

@@ -35,10 +35,10 @@ class ResearchWorkflow:
 
         # 1. Ask the Director to inspect the question, check notebook memory,
         # and assemble the specialist research team.
-        director_plan = self.director.create_plan(question)
+        director_plan = await self.director.create_plan(question)
 
         # 2. Create the structured investigation plan.
-        plan = self.planner.create_plan(question)
+        plan = await self.planner.create_plan(question)
 
         # 3. Retrieve evidence using the planner's search queries.
         papers = await self.evidence.collect_evidence(
@@ -61,13 +61,13 @@ class ResearchWorkflow:
         ]
 
         # 6. Compare findings across papers.
-        review = self.literature_review.create_review(analyses)
+        review = await self.literature_review.create_review(analyses)
 
         # 7. Detect possible research gaps.
         research_gaps = self.gap_detector.detect_gaps(analyses)
 
         # 8. Generate the final markdown report.
-        report = self.report_writer.create_report(
+        report = await self.report_writer.create_report(
             question=question,
             plan=plan,
             review=review,

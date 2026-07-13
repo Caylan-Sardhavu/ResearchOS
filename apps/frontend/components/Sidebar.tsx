@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 type NotebookEntry = {
   id: string;
   question: string;
@@ -34,7 +37,7 @@ export default function Sidebar({
       setLoadingHistory(true);
 
       try {
-        const response = await fetch("http://127.0.0.1:8000/notebook");
+        const response = await fetch(`${API_URL}/notebook`);
 
         if (!response.ok) {
           throw new Error("Unable to load notebook history.");
